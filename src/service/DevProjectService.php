@@ -3,30 +3,17 @@
 namespace xjryanse\dev\service;
 
 use xjryanse\system\interfaces\MainModelInterface;
-use xjryanse\user\service\UserService;
-use xjryanse\wechat\service\WechatWePubFansService;
 
 /**
  * 
  */
-class DevNeedsService extends Base implements MainModelInterface {
+class DevProjectService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
 
     protected static $mainModel;
-    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevNeeds';
-
-    public function info( $cache = -1 )
-    {
-        $info = $this->get( 0 );        
-        if($info){
-            $info['needVerifyUserInfo']             = UserService::getInstance($info['need_verify_user'])->get();
-            $info['needVerifyWepubOpenIdInfo']      = WechatWePubFansService::findByOpenid($info['need_verify_wepub_openid']);
-            $info['needDealUserInfo']               = UserService::getInstance($info['need_deal_user'])->get();
-        }
-        return $info;
-    }
+    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevProject';
     
     /**
      *
@@ -50,30 +37,16 @@ class DevNeedsService extends Base implements MainModelInterface {
     }
 
     /**
-     * 需求文档名
+     * 
      */
-    public function fNeedTitle() {
+    public function fProjectTitle() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
     /**
-     * 需求类型：合同、补充、口头
+     * 
      */
-    public function fNeedType() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求描述
-     */
-    public function fNeedDesc() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求人姓名
-     */
-    public function fNeedUser() {
+    public function fProjectLogo() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
