@@ -7,19 +7,27 @@ use xjryanse\system\interfaces\MainModelInterface;
 /**
  * 
  */
-class DevNeedsDtlService extends Base implements MainModelInterface {
+class DevProjectTimeService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
     use \xjryanse\traits\MainModelQueryTrait;
 
     protected static $mainModel;
-    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevNeedsDtl';
+    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevProjectTime';
 
     /**
      *
      */
     public function fId() {
+        return $this->getFFieldValue(__FUNCTION__);
+    }
+
+    /**
+     * 直付款
+     * @return type
+     */
+    public function fDirectPay() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
@@ -38,44 +46,16 @@ class DevNeedsDtlService extends Base implements MainModelInterface {
     }
 
     /**
-     * 需求的id
+     * 
      */
-    public function fNeedId() {
+    public function fProjectTitle() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
     /**
-     * 父级需求详情
+     * 
      */
-    public function fPid() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求类型:页面(前端)，逻辑(后端)，功能模块
-     */
-    public function fDtlType() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求标题
-     */
-    public function fDtlTitle() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求内容
-     */
-    public function fDtlContent() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求人姓名
-     */
-    public function fDtlUser() {
+    public function fProjectLogo() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 

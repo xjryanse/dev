@@ -3,18 +3,31 @@
 namespace xjryanse\dev\service;
 
 use xjryanse\system\interfaces\MainModelInterface;
+use xjryanse\logic\Arrays;
+use app\generate\service\GenerateTemplateService;
+use app\generate\service\GenerateTemplateLogService;
 
 /**
  * 
  */
-class DevNeedsDtlService extends Base implements MainModelInterface {
+class DevNeedsGroupTesterService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
     use \xjryanse\traits\MainModelQueryTrait;
 
     protected static $mainModel;
-    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevNeedsDtl';
+    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevNeedsGroupTester';
+
+//    public static function extraDetails($ids) {
+//        return self::commExtraDetails($ids, function($lists) use ($ids){
+//
+//            foreach ($lists as &$v) {
+//
+//            }
+//            return $lists;
+//        });
+//    }
 
     /**
      *
@@ -38,44 +51,30 @@ class DevNeedsDtlService extends Base implements MainModelInterface {
     }
 
     /**
-     * 需求的id
+     * 需求文档名
      */
-    public function fNeedId() {
+    public function fNeedTitle() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
     /**
-     * 父级需求详情
+     * 需求类型：合同、补充、口头
      */
-    public function fPid() {
+    public function fNeedType() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
     /**
-     * 需求类型:页面(前端)，逻辑(后端)，功能模块
+     * 需求描述
      */
-    public function fDtlType() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求标题
-     */
-    public function fDtlTitle() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求内容
-     */
-    public function fDtlContent() {
+    public function fNeedDesc() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
     /**
      * 需求人姓名
      */
-    public function fDtlUser() {
+    public function fNeedUser() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
