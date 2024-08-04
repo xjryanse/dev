@@ -15,6 +15,18 @@ class DevQuotePage extends Base
             'uni_field' =>'id',
             'del_check' => true
         ],
+        [
+            'field'     =>'func_id',
+            'uni_name'  =>'dev_quote_func',
+            'uni_field' =>'id',
+            'del_check' => true
+        ],
+        [
+            'field'     =>'port_id',
+            'uni_name'  =>'dev_quote_port',
+            'uni_field' =>'id',
+            'del_check' => true
+        ]
     ];
     
     public static $picFields = ['demo_pic'];

@@ -3,11 +3,11 @@
 namespace xjryanse\dev\service;
 
 use xjryanse\system\interfaces\MainModelInterface;
-
+use xjryanse\dev\service\DevQuotePageService;
 /**
  * 
  */
-class DevQuotePageService extends Base implements MainModelInterface {
+class DevQuoteFuncService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
@@ -20,13 +20,16 @@ class DevQuotePageService extends Base implements MainModelInterface {
     use \xjryanse\traits\ObjectAttrTrait;
     
     protected static $mainModel;
-    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevQuotePage';
+    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevQuoteFunc';
 
-    use \xjryanse\dev\service\quotePage\CalTraits;
-    use \xjryanse\dev\service\quotePage\TriggerTraits;
-    
     public static function extraDetails($ids) {
         return self::commExtraDetails($ids, function($lists) use ($ids) {
+            
+            foreach($lists as &$v){
+                // 页面报价
+                $v['pagePrize'] = DevQuotePageService::calPrizeByFuncId($v['id']);
+            }
+            
             return $lists;
         },true);
     }

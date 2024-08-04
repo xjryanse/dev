@@ -7,7 +7,7 @@ use xjryanse\system\interfaces\MainModelInterface;
 /**
  * 
  */
-class DevQuotePageService extends Base implements MainModelInterface {
+class DevQuotePortService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
@@ -20,13 +20,20 @@ class DevQuotePageService extends Base implements MainModelInterface {
     use \xjryanse\traits\ObjectAttrTrait;
     
     protected static $mainModel;
-    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevQuotePage';
+    protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevQuotePort';
 
-    use \xjryanse\dev\service\quotePage\CalTraits;
-    use \xjryanse\dev\service\quotePage\TriggerTraits;
-    
+    use \xjryanse\dev\service\quotePort\CalTraits;
+
     public static function extraDetails($ids) {
         return self::commExtraDetails($ids, function($lists) use ($ids) {
+            
+            foreach($lists as &$v){
+                // 页面报价
+                $v['pagePrize'] = DevQuotePageService::calPrizeByPortId($v['id']);
+                // 端口总价
+                $v['allPrize']  = $v['base_prize'] + $v['pagePrize'];
+            }
+            
             return $lists;
         },true);
     }

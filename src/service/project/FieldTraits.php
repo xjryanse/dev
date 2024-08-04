@@ -1,31 +1,38 @@
 <?php
 
-namespace xjryanse\dev\service;
-
-use xjryanse\system\interfaces\MainModelInterface;
+namespace xjryanse\dev\service\project;
 
 /**
- * 
+ * 字段复用列表
  */
-class ViewDevLinkManageService extends Base implements MainModelInterface {
-
-    use \xjryanse\traits\InstTrait;
-    use \xjryanse\traits\MainModelTrait;
-    use \xjryanse\traits\MainModelRamTrait;
-    use \xjryanse\traits\MainModelCacheTrait;
-    use \xjryanse\traits\MainModelCheckTrait;
-    use \xjryanse\traits\MainModelGroupTrait;
-    use \xjryanse\traits\MainModelQueryTrait;
-
-    use \xjryanse\traits\StaticModelTrait;
-
-    protected static $mainModel;
-    protected static $mainModelClass = '\\xjryanse\\dev\\model\\ViewDevLinkManage';
+trait FieldTraits{
 
     /**
      *
      */
     public function fId() {
+        return $this->getFFieldValue(__FUNCTION__);
+    }
+
+    /**
+     * 续费spu
+     * @return type
+     */
+    public function fExtSpuId() {
+        return $this->getFFieldValue(__FUNCTION__);
+    }
+    /**
+     * 直付款
+     * @return type
+     */
+    public function fDirectPay() {
+        return $this->getFFieldValue(__FUNCTION__);
+    }
+
+    /**
+     *
+     */
+    public function fAppId() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
@@ -39,18 +46,18 @@ class ViewDevLinkManageService extends Base implements MainModelInterface {
     /**
      * 
      */
-    public function fProjectId() {
+    public function fProjectTitle() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
     /**
      * 
      */
-    public function fUserId() {
+    public function fProjectLogo() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 
-    public function fRole() {
+    public function fProjectManager() {
         return $this->getFFieldValue(__FUNCTION__);
     }
 

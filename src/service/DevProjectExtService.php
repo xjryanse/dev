@@ -4,12 +4,11 @@ namespace xjryanse\dev\service;
 
 use xjryanse\system\interfaces\MainModelInterface;
 use xjryanse\order\service\OrderService;
-use xjryanse\goods\service\GoodsService;
-use xjryanse\logic\Arrays;
+// use xjryanse\goods\service\GoodsService;
 use xjryanse\logic\Debug;
-use xjryanse\logic\Datetime;
 use xjryanse\logic\DbOperate;
 use app\order\service\OrderEProjectExtService;
+use Exception;
 
 /**
  * 项目续费记录
@@ -41,59 +40,19 @@ class DevProjectExtService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
+    use \xjryanse\traits\MainModelRamTrait;
+    use \xjryanse\traits\MainModelCacheTrait;
+    use \xjryanse\traits\MainModelCheckTrait;
+    use \xjryanse\traits\MainModelGroupTrait;
     use \xjryanse\traits\MainModelQueryTrait;
+
 
     protected static $mainModel;
     protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevProjectExt';
 
-    public static function extraPreSave(&$data, $uuid) {
-        self::stopUse(__METHOD__);
-    }
-
-    public static function extraPreUpdate(&$data, $uuid) {
-        self::stopUse(__METHOD__);
-    }
-
-    public function extraPreDelete() {
-        self::stopUse(__METHOD__);
-    }
-
-    protected static function dataGenerate($projectId, $extDays, $data = []) {
-        $projInfo = DevProjectService::getInstance($projectId)->get();
-        $data['old_finish_time'] = $projInfo['finish_time'] ?: null;
-        $finishTimeStamp = strtotime($projInfo['finish_time']);
-        // TODO : 延期开始时间：还没过期，取没过期时间
-        $data['ext_start_time'] = $projInfo['finish_time'] && $finishTimeStamp > time() ? $projInfo['finish_time'] : date('Y-m-d H:i:s');
-
-        $data['new_finish_time'] = Datetime::datetimeDayExt($extDays, $data['ext_start_time']);
-        return $data;
-    }
-
-    public static function ramPreSave(&$data, $uuid) {
-        $projectId = $data['project_id'];
-        $extDays = $data['ext_days'];
-        $data = self::dataGenerate($projectId, $extDays, $data);
-
-        return $data;
-    }
-
-    public static function ramAfterSave(&$data, $uuid) {
-        //20230519:更新项目的到期时间
-        $projectId = $data['project_id'];
-        DevProjectService::getInstance($projectId)->updateFinishTimeRam();
-    }
-
-    public static function ramAfterUpdate(&$data, $uuid) {
-        //20230519:更新项目的到期时间
-        $info = self::getInstance($uuid)->get();
-        $projectId = $info['project_id'];
-        DevProjectService::getInstance($projectId)->updateFinishTimeRam();
-    }
-
-    public function ramAfterDelete($info) {
-        $projectId = $info['project_id'];
-        DevProjectService::getInstance($projectId)->updateFinishTimeRam();
-    }
+    use \xjryanse\dev\service\projectExt\TriggerTraits;
+    use \xjryanse\dev\service\projectExt\CalTraits;
+    use \xjryanse\dev\service\projectExt\DoTraits;
 
     public static function hasExtLog($fromTable, $fromTableId) {
         $con[] = ['from_table', '=', $fromTable];
@@ -101,19 +60,9 @@ class DevProjectExtService extends Base implements MainModelInterface {
         return self::count($con);
     }
 
-    /**
-     * 计算项目的到期时间
-     * @param type $projectId
-     */
-    public static function calProjectFinishTime($projectId) {
-        $lists = DevProjectService::getInstance($projectId)->objAttrsList('devProjectExt');
-        return $lists ? max(array_column($lists, 'new_finish_time')) : null;
-    }
-
     /*
      * 20230530:处理订单续费的逻辑
      */
-
     public static function doOrderExtBatch() {
         // 20230530：提取未处理的订单
         $orderIds = self::noDealOrderIds();
@@ -149,28 +98,31 @@ class DevProjectExtService extends Base implements MainModelInterface {
      */
     public static function dealOrderExtRam($orderId) {
         $orderTable = OrderService::getTable();
-        $orderInst = OrderService::getInstance($orderId);
+        $orderInst  = OrderService::getInstance($orderId);
         // 未支付
         if (!$orderInst->hasPay()) {
-            return false;
+            throw new Exception('订单未支付');
         }
         // 已处理
         if (self::hasExtLog($orderTable, $orderId)) {
-            return false;
+            throw new Exception('订单已续期处理'.$orderId);
         }
         // 处理逻辑
-        $orderInfo = $orderInst->get();
-        $goodsInfo = GoodsService::getInstance($orderInfo['goods_id'])->get(0);
+        $orderInfo  = $orderInst->get();
+        $goodsId    = $orderInfo['goods_id'];
+        // $goodsInfo  = GoodsService::getInstance($goodsId)->get(0);
         $eOrderInfo = OrderEProjectExtService::getInstance($orderId)->get();
         // 下单时未捆绑项目
         if (!$eOrderInfo['dev_project_id']) {
-            return false;
+            throw new Exception('订单未捆绑项目，请联系客服'.$orderId);
         }
-
-        $upData['project_id'] = $eOrderInfo['dev_project_id'];
-        $upData['ext_days'] = $goodsInfo['goods_value'];
-        $upData['from_table'] = $orderTable;
-        $upData['from_table_id'] = $orderId;
+        $projectId                  = $eOrderInfo['dev_project_id'];
+        $upData['project_id']       = $projectId;
+        // $upData['ext_days']     = $goodsInfo['goods_value'];
+        // 20231028:增加月份处理
+        $upData['ext_days']         = self::calExtDaysByGoodsId($projectId, $goodsId);
+        $upData['from_table']       = $orderTable;
+        $upData['from_table_id']    = $orderId;
         self::saveRam($upData);
     }
 

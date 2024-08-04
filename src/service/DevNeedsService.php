@@ -6,9 +6,11 @@ use xjryanse\system\interfaces\MainModelInterface;
 use xjryanse\user\service\UserService;
 use xjryanse\wechat\service\WechatWePubFansService;
 use xjryanse\order\service\OrderService;
+use xjryanse\sql\service\SqlService;
 use xjryanse\logic\Arrays;
 use xjryanse\logic\Arrays2d;
 use xjryanse\logic\Debug;
+use think\facade\Request;
 use Exception;
 
 /**
@@ -18,11 +20,21 @@ class DevNeedsService extends Base implements MainModelInterface {
 
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
+    use \xjryanse\traits\MainModelRamTrait;
+    use \xjryanse\traits\MainModelCacheTrait;
+    use \xjryanse\traits\MainModelCheckTrait;
+    use \xjryanse\traits\MainModelGroupTrait;
     use \xjryanse\traits\MainModelQueryTrait;
+
+    use \xjryanse\traits\ObjectAttrTrait;
 
     protected static $mainModel;
     protected static $mainModelClass = '\\xjryanse\\dev\\model\\DevNeeds';
 
+    use \xjryanse\dev\service\needs\FieldTraits;
+    use \xjryanse\dev\service\needs\TriggerTraits;
+    use \xjryanse\dev\service\needs\CustomerTraits;
+    
     public static function extraDataAuthCond() {
         $sessionUserInfo = session(SESSION_USER_INFO);
         if ($sessionUserInfo['admin_type'] == 'super') {
@@ -38,31 +50,6 @@ class DevNeedsService extends Base implements MainModelInterface {
         return $authCond;
     }
 
-    public static function extraPreUpdate(&$data, $uuid) {
-        $info = self::getInstance($uuid)->get();
-        if (!Arrays::value($info, 'dev_finish') && Arrays::value($data, 'dev_finish')) {
-            $data['dev_finish_time'] = date('Y-m-d H:i:s');
-        }
-        return $data;
-    }
-
-    /**
-     * 前序保存
-     * @param type $data
-     * @param type $uuid
-     * @return type
-     * @throws Exception
-     */
-    public static function extraPreSave(&$data, $uuid) {
-        if (!Arrays::value($data, 'need_title')) {
-            throw new Exception('需求标题必须');
-        }
-        return $data;
-    }
-
-    public function extraPreDelete() {
-        self::stopUse(__METHOD__);
-    }
 
     public static function extraDetails($ids) {
         return self::commExtraDetails($ids, function($lists) use ($ids) {
@@ -78,23 +65,6 @@ class DevNeedsService extends Base implements MainModelInterface {
                 });
     }
 
-    /**
-     * 20220810：增加判断
-     * @throws Exception
-     */
-    public function ramPreDelete() {
-        $info = $this->get();
-        Debug::debug('info', $info);
-        if ($info['has_settle']) {
-            throw new Exception('已结算不可删');
-        }
-        if ($info['dev_finish']) {
-            throw new Exception('已完工不可删');
-        }
-        if ($info['has_confirm']) {
-            throw new Exception('已接单不可删');
-        }
-    }
 
     /**
      * 20220821
@@ -204,124 +174,31 @@ class DevNeedsService extends Base implements MainModelInterface {
 
         return $data;
     }
-
     /**
-     *
+     * 更新追加金额
+     * @return type
      */
-    public function fId() {
-        return $this->getFFieldValue(__FUNCTION__);
+    public function appendPrizeUpdateRam() {
+        $data['append_prize']   = $this->calAppendPrize() ? : 0;
+        $orderAmount            = $this->fOrderAmount() ? : 0;
+        $data['total_prize']    = $data['append_prize'] + $orderAmount;
+
+        return $this->doUpdateRam($data);
     }
 
     /**
-     *
+     * 20220623:计算佣金总额
      */
-    public function fAppId() {
-        return $this->getFFieldValue(__FUNCTION__);
+    public function calAppendPrize() {
+        $lists = $this->objAttrsList('devNeedsDtl');
+        $sum = 0;
+        foreach($lists as $v){
+            // 20240605
+            $prize = Arrays::value($v, 'prize') ? : 0;
+            $sum += $prize ? : 0;
+        }
+        return $sum;
     }
 
-    /**
-     *
-     */
-    public function fCompanyId() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求文档名
-     */
-    public function fNeedTitle() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求类型：合同、补充、口头
-     */
-    public function fNeedType() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求描述
-     */
-    public function fNeedDesc() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 需求人姓名
-     */
-    public function fNeedUser() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 排序
-     */
-    public function fSort() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 状态(0禁用,1启用)
-     */
-    public function fStatus() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 有使用(0否,1是)
-     */
-    public function fHasUsed() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 锁定（0：未锁，1：已锁）
-     */
-    public function fIsLock() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 锁定（0：未删，1：已删）
-     */
-    public function fIsDelete() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 备注
-     */
-    public function fRemark() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 创建者，user表
-     */
-    public function fCreater() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 更新者，user表
-     */
-    public function fUpdater() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 创建时间
-     */
-    public function fCreateTime() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
-
-    /**
-     * 更新时间
-     */
-    public function fUpdateTime() {
-        return $this->getFFieldValue(__FUNCTION__);
-    }
 
 }

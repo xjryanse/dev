@@ -1,26 +1,11 @@
 <?php
 
-namespace xjryanse\dev\service;
-
-use xjryanse\system\interfaces\MainModelInterface;
+namespace xjryanse\dev\service\projectUser;
 
 /**
- * 
+ * 字段复用列表
  */
-class ViewDevLinkManageService extends Base implements MainModelInterface {
-
-    use \xjryanse\traits\InstTrait;
-    use \xjryanse\traits\MainModelTrait;
-    use \xjryanse\traits\MainModelRamTrait;
-    use \xjryanse\traits\MainModelCacheTrait;
-    use \xjryanse\traits\MainModelCheckTrait;
-    use \xjryanse\traits\MainModelGroupTrait;
-    use \xjryanse\traits\MainModelQueryTrait;
-
-    use \xjryanse\traits\StaticModelTrait;
-
-    protected static $mainModel;
-    protected static $mainModelClass = '\\xjryanse\\dev\\model\\ViewDevLinkManage';
+trait FieldTraits{
 
     /**
      *
@@ -123,5 +108,4 @@ class ViewDevLinkManageService extends Base implements MainModelInterface {
     public function fUpdateTime() {
         return $this->getFFieldValue(__FUNCTION__);
     }
-
 }
